@@ -1,0 +1,6 @@
+name = "amzppc-api"
+main = "workers/save-campaign.js"
+compatibility_date = "2024-01-01"
+
+[env.production]
+vars = { GITHUB_REPO_OWNER = "moeghashim", GITHUB_REPO_NAME = "amzppc" }

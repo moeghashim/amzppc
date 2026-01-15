@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { generateCampaignNames } from '../utils/campaignGenerator';
+import { checkAsinExists, saveCampaigns } from '../services/campaignService';
+import ErrorMessage from './ErrorMessage';
+import SuccessMessage from './SuccessMessage';
 import './CampaignGenerator.css';
 
 export default function CampaignGenerator() {
@@ -8,13 +11,84 @@ export default function CampaignGenerator() {
   const [campaigns, setCampaigns] = useState([]);
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [allCopied, setAllCopied] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const handleGenerate = () => {
-    if (asin.trim() && productSlug.trim()) {
+  useEffect(() => {
+    // Clear messages after 5 seconds
+    if (error) {
+      const timer = setTimeout(() => setError(''), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => setSuccess(''), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [success]);
+
+  const handleGenerate = async () => {
+    if (!asin.trim() || !productSlug.trim()) {
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    try {
+      // Check if ASIN already exists
+      const exists = await checkAsinExists(asin.trim());
+      
+      if (exists) {
+        setError('This ASIN already exists. Please use a different ASIN or view existing campaigns.');
+        setLoading(false);
+        return;
+      }
+
+      // Generate campaigns
       const generated = generateCampaignNames(asin.trim(), productSlug.trim());
       setCampaigns(generated);
       setCopiedIndex(null);
       setAllCopied(false);
+    } catch (err) {
+      setError(`Failed to check ASIN: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (campaigns.length === 0) {
+      setError('No campaigns to save. Please generate campaigns first.');
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+    setSaving(true);
+
+    try {
+      await saveCampaigns(asin.trim(), productSlug.trim(), campaigns);
+      setSuccess('Campaigns saved successfully!');
+      // Clear the form after successful save
+      setTimeout(() => {
+        setAsin('');
+        setProductSlug('');
+        setCampaigns([]);
+      }, 2000);
+    } catch (err) {
+      if (err.message.includes('already exists')) {
+        setError('This ASIN already exists. Please use a different ASIN or view existing campaigns.');
+      } else {
+        setError(`Failed to save campaigns: ${err.message}`);
+      }
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -49,15 +123,22 @@ export default function CampaignGenerator() {
         </header>
 
         <div className="input-section">
+          <ErrorMessage message={error} onClose={() => setError('')} />
+          <SuccessMessage message={success} onClose={() => setSuccess('')} />
+
           <div className="input-group">
             <label htmlFor="asin">ASIN</label>
             <input
               id="asin"
               type="text"
               value={asin}
-              onChange={(e) => setAsin(e.target.value)}
+              onChange={(e) => {
+                setAsin(e.target.value);
+                setError('');
+              }}
               placeholder="B08XYZ1234"
               className="input-field"
+              disabled={loading || saving}
             />
           </div>
 
@@ -67,19 +148,35 @@ export default function CampaignGenerator() {
               id="productSlug"
               type="text"
               value={productSlug}
-              onChange={(e) => setProductSlug(e.target.value)}
+              onChange={(e) => {
+                setProductSlug(e.target.value);
+                setError('');
+              }}
               placeholder="wireless-headphones"
               className="input-field"
+              disabled={loading || saving}
             />
           </div>
 
-          <button
-            onClick={handleGenerate}
-            disabled={!asin.trim() || !productSlug.trim()}
-            className="generate-button"
-          >
-            Generate Campaign Names
-          </button>
+          <div className="button-group">
+            <button
+              onClick={handleGenerate}
+              disabled={!asin.trim() || !productSlug.trim() || loading || saving}
+              className="generate-button"
+            >
+              {loading ? 'Checking...' : 'Generate Campaign Names'}
+            </button>
+
+            {campaigns.length > 0 && (
+              <button
+                onClick={handleSave}
+                disabled={saving || loading}
+                className="save-button"
+              >
+                {saving ? 'Saving...' : 'Save Campaigns'}
+              </button>
+            )}
+          </div>
         </div>
 
         {campaigns.length > 0 && (

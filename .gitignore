@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables
+.env.local
+.env
+
+# Cloudflare Workers
+.wrangler/
+wrangler.toml.local
