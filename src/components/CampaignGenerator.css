@@ -155,8 +155,8 @@
 
 .campaign-item {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.5rem;
   padding: 1rem;
   background: var(--muted);
   border: 1px solid var(--border);
@@ -169,6 +169,14 @@
   border-color: var(--ring);
 }
 
+.campaign-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary);
+  font-family: var(--font-sans);
+  margin-bottom: 0.25rem;
+}
+
 .campaign-name {
   flex: 1;
   font-family: var(--font-mono);
@@ -178,6 +186,7 @@
   padding: 0.5rem;
   background: var(--background);
   border-radius: var(--radius-sm);
+  width: 100%;
 }
 
 .copy-button {
@@ -234,7 +243,15 @@
     align-items: stretch;
   }
 
+  .campaign-item > div:last-of-type {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
   .copy-button {
-    width: 100%;
+    width: auto;
+    flex-shrink: 0;
   }
 }

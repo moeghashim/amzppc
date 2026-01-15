@@ -31,7 +31,7 @@ export default function CampaignGenerator() {
   const handleCopyAll = async () => {
     if (campaigns.length === 0) return;
     try {
-      const allText = campaigns.join('\n');
+      const allText = campaigns.map(c => c.name).join('\n');
       await navigator.clipboard.writeText(allText);
       setAllCopied(true);
       setTimeout(() => setAllCopied(false), 2000);
@@ -97,14 +97,17 @@ export default function CampaignGenerator() {
             <div className="campaigns-list">
               {campaigns.map((campaign, index) => (
                 <div key={index} className="campaign-item">
-                  <code className="campaign-name">{campaign}</code>
-                  <button
-                    onClick={() => handleCopy(campaign, index)}
-                    className="copy-button"
-                    aria-label="Copy campaign name"
-                  >
-                    {copiedIndex === index ? '✓' : '📋'}
-                  </button>
+                  <div className="campaign-label">{campaign.label}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%' }}>
+                    <code className="campaign-name">{campaign.name}</code>
+                    <button
+                      onClick={() => handleCopy(campaign.name, index)}
+                      className="copy-button"
+                      aria-label="Copy campaign name"
+                    >
+                      {copiedIndex === index ? '✓' : '📋'}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
