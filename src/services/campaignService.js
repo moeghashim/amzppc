@@ -4,7 +4,7 @@
  */
 
 const CAMPAIGNS_DATA_URL = 'https://raw.githubusercontent.com/moeghashim/amzppc/main/data/campaigns.json';
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = import.meta.env.VITE_API_URL || 'https://amzppc-api.moe-3b7.workers.dev';
 
 /**
  * Fetch all campaigns from GitHub raw content
